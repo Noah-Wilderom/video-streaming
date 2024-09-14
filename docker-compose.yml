@@ -1,0 +1,67 @@
+version: "3"
+
+services:
+
+  postgres:
+    image: 'postgres:latest'
+    restart: always
+    ports:
+      - "5432:5432"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./db-data/postgres/:/var/lib/postgresql/data/
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  api-gateway:
+    image: alpine:latest
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./bin/api-gateway:/app/api-gateway
+    entrypoint: [ "/app/api-gateway" ]
+
+  user-service:
+    image: alpine:latest
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./bin/user-service:/app/user-service
+      - ./user-service/configs:/app/configs
+    entrypoint: [ "/app/user-service" ]
+    environment:
+      DSN: "host=postgres port=5432 user=postgres password=password dbname=jobs sslmode=disable timezone=Europe/Amsterdam connect_timeout=5"
+
+  video-service:
+    image: alpine:latest
+    container_name: video-service
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./bin/video-service:/app/video-service
+    entrypoint: [ "/app/video-service" ]
+    environment:
+      DSN: "host=postgres port=5432 user=postgres password=password dbname=jobs sslmode=disable timezone=Europe/Amsterdam connect_timeout=5"
+
+  streaming-service:
+    image: alpine:latest
+    container_name: streaming-service
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./bin/streaming-service:/app/streaming-service
+    entrypoint: [ "/app/streaming-service" ]
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  shared:
+    driver: bridge

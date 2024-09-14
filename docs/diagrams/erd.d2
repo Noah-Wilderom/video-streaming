@@ -1,0 +1,42 @@
+vars: {
+    d2-config: {
+        layout-engine: elk
+        # Terminal theme code
+        theme-id: 300
+    }
+}
+
+users: {
+    shape: sql_table
+
+    id: uuid {constraint: primary_key}
+    name: string
+    email: string
+    password: string
+    created_at: timestamp
+    updated_at: timestamp
+}
+
+uploads: {
+    shape: sql_table
+
+    id: uuid {constraint: primary_key}
+    user_id: uuid {constraint: foreign_key}
+    video_id: uuid {constraint: foreign_key}
+    created_at: timestamp
+    updated_at: timestamp
+}
+
+videos: {
+    shape: sql_table
+
+    id: uuid {constraint: primary_key}
+    title: string
+    path: string
+    password: string
+    created_at: timestamp
+    updated_at: timestamp
+}
+
+uploads.user_id -> users
+uploads.video_id -> videos
