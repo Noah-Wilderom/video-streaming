@@ -3,7 +3,7 @@ module github.com/Noah-Wilderom/video-streaming/user-service
 go 1.22.2
 
 require (
-	github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914203229-70027c497c83
+	github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914205133-ae66396d4e93
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/protobuf v1.5.4
 	gofr.dev v1.19.0

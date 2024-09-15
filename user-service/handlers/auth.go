@@ -37,9 +37,14 @@ func (h *AuthHandler) Login(ctx context.Context, request *auth.LoginRequest) (*a
 	}
 
 	th := token.NewJWTTokenHandler()
+	encryptedUser, err := crypt.EncryptStruct(user)
+	if err != nil {
+		h.Logger.Error(err)
+		return nil, err
+	}
 
-	tokenStr, err := th.New(map[string]interface{}{
-		"user": user,
+	tokenStr, err := th.New(map[string][]byte{
+		"user": encryptedUser,
 	})
 	if err != nil {
 		h.Logger.Error(err)
@@ -99,7 +104,7 @@ func (h *AuthHandler) Register(ctx context.Context, request *auth.RegisterReques
 	}
 
 	tokenStr, err := th.New(map[string][]byte{
-		"user_id": encryptedUser,
+		"user": encryptedUser,
 	})
 	if err != nil {
 		h.Logger.Error(err)
@@ -119,17 +124,26 @@ func (h *AuthHandler) Register(ctx context.Context, request *auth.RegisterReques
 }
 
 func (h *AuthHandler) Check(ctx context.Context, request *auth.CheckRequest) (*auth.LoginResponse, error) {
-	h.Logger.Debug("Check function called")
+	h.Logger.Debug("check function called")
 
 	th := token.NewJWTTokenHandler()
 
-	tokenValid, claims := th.Validate(request.Token)
+	tokenValid, data := th.Validate(request.Token)
 	if !tokenValid {
 		return nil, errors.New("invalid token")
 	}
 
-	if user, ok := claims["user"]; !ok {
+	encryptedUser, ok := data["user"].([]byte)
+	if !ok {
+		h.Logger.Error("invalid user data")
+		return nil, errors.New("invalid token")
+	}
 
+	var user models.User
+	err := crypt.DecryptStruct(encryptedUser, &user)
+	if err != nil {
+		h.Logger.Error(errors.Join(errors.New("invalid user data encryption error"), err))
+		return nil, err
 	}
 
 }

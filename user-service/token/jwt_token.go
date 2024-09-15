@@ -30,23 +30,26 @@ func (t *JWTToken) New(data map[string][]byte) (string, error) {
 }
 
 // Validate implements the token interface.
-func (t JWTToken) Validate(token string) (bool, map[string][]byte) {
+func (t JWTToken) Validate(token string) (bool, map[string]interface{}) {
 	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(getSecret()), nil
 	})
 
 	if err != nil {
 		fmt.Println("err?")
-		return false, map[string][]byte{}
+		return false, map[string]interface{}{}
 	}
 
 	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok {
 		if exp, ok := claims["exp"]; ok {
 			if expFloat, ok := exp.(float64); ok {
 				if !time.Unix(int64(expFloat), 0).Before(time.Now()) {
-					if expData, ok := exp.(map[string][]byte); ok {
-						return true, expData
+					if data, ok := claims["data"]; ok {
+						if byteData, ok := data.(map[string]interface{}); ok {
+							return true, byteData
+						}
 					}
+
 				} else {
 					fmt.Println("Token expired")
 				}
@@ -55,5 +58,5 @@ func (t JWTToken) Validate(token string) (bool, map[string][]byte) {
 
 	}
 
-	return false, map[string][]byte{}
+	return false, map[string]interface{}{}
 }
