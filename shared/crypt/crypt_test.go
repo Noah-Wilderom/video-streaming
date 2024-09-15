@@ -50,3 +50,25 @@ func TestEncryptStruct(t *testing.T) {
 		t.Errorf("got %+v but want %+v", decStruct, anonStruct)
 	}
 }
+
+func TestEncryptStructBase64(t *testing.T) {
+	t.Setenv("APP_SECRET", "foobarbazfoobarbazfoobarbazfoobarbaz")
+	anonStruct := &testStruct{
+		Value: "testing",
+	}
+
+	encStruct, err := EncryptStructBase64(anonStruct)
+	if err != nil {
+		t.Error("Error on encrypting struct")
+	}
+
+	var decStruct testStruct
+	err = DecryptStructBase64(encStruct, &decStruct)
+	if err != nil {
+		t.Error("Error on decrypting struct")
+	}
+
+	if !reflect.DeepEqual(anonStruct, &decStruct) {
+		t.Errorf("got %+v but want %+v", decStruct, anonStruct)
+	}
+}

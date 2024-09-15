@@ -41,7 +41,7 @@ func DecryptStructBase64(value string, structValue interface{}) error {
 		return err
 	}
 
-	return DecryptStruct(decodedPayload, &structValue)
+	return DecryptStruct(decodedPayload, structValue)
 }
 
 func Decrypt(value []byte) ([]byte, error) {
@@ -68,7 +68,6 @@ func EncryptStructBase64(value interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	encodedPayload := base64.StdEncoding.EncodeToString(encryptedValue)
 	return encodedPayload, nil
 }

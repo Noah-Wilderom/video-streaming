@@ -23,8 +23,8 @@ func TestToken(t *testing.T) {
 	}
 
 	hash := sha256.New().Sum(dataBytes)
-	jwtToken, err := h.New(map[string][]byte{
-		"hash": hash,
+	jwtToken, err := h.New(map[string]string{
+		"hash": string(hash),
 	})
 
 	if err != nil {
@@ -65,7 +65,7 @@ func TestTokenWithStruct(t *testing.T) {
 	}
 
 	hash := sha256.New().Sum(dataBytes)
-	encryptedStruct, err := crypt.EncryptStruct(&testStruct{
+	encryptedStruct, err := crypt.EncryptStructBase64(&testStruct{
 		Hash: hash,
 	})
 	if err != nil {
@@ -73,7 +73,7 @@ func TestTokenWithStruct(t *testing.T) {
 		return
 	}
 
-	jwtToken, err := h.New(map[string][]byte{
+	jwtToken, err := h.New(map[string]string{
 		"hash": encryptedStruct,
 	})
 
@@ -89,7 +89,7 @@ func TestTokenWithStruct(t *testing.T) {
 
 	var decryptedStruct testStruct
 	if hashData, ok := data["hash"].(string); ok {
-		err = crypt.DecryptStruct([]byte(hashData), &decryptedStruct)
+		err = crypt.DecryptStructBase64(hashData, &decryptedStruct)
 		if err != nil {
 			t.Error(err)
 			return

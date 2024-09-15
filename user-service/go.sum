@@ -24,6 +24,8 @@ github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914203229-70027c497c
 github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914203229-70027c497c83/go.mod h1:wEBLh+ByMMtukH9ilLhHhlILRxpOTkMr1ycQF4YLrMM=
 github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914205133-ae66396d4e93 h1:KnMg37fyUUOkHKzjMIBzP2fwUApKN49VoE8xw7Y0tdM=
 github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240914205133-ae66396d4e93/go.mod h1:wEBLh+ByMMtukH9ilLhHhlILRxpOTkMr1ycQF4YLrMM=
+github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240915120811-1a0753026233 h1:1VlFrqAO2TnttwJtgOSnv13zzWP0gun0U1JdQw+5KWU=
+github.com/Noah-Wilderom/video-streaming/shared v0.0.0-20240915120811-1a0753026233/go.mod h1:wEBLh+ByMMtukH9ilLhHhlILRxpOTkMr1ycQF4YLrMM=
 github.com/XSAM/otelsql v0.32.0 h1:vDRE4nole0iOOlTaC/Bn6ti7VowzgxK39n3Ll1Kt7i0=
 github.com/XSAM/otelsql v0.32.0/go.mod h1:Ary0hlyVBbaSwo8atZB8Aoothg9s/LBJj/N/p5qDmLM=
 github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a h1:HbKu58rmZpUGpz5+4FfNmIU+FmZg2P3Xaj2v2bfNWmk=

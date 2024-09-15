@@ -15,7 +15,7 @@ func NewJWTTokenHandler() *JWTToken {
 }
 
 // New implements the Token interface.
-func (t *JWTToken) New(data map[string][]byte) (string, error) {
+func (t *JWTToken) New(data map[string]string) (string, error) {
 	exp := time.Now().Add(time.Hour).Unix()
 	// Create a new token object, specifying signing method and the claims
 	// you would like it to contain.
