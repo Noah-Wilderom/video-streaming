@@ -24,16 +24,18 @@ services:
       - "8080:8080"
     volumes:
       - ./bin/api-gateway:/app/api-gateway
+      - ./api-gateway/configs/:/app/configs/
     entrypoint: [ "/app/api-gateway" ]
 
   user-service:
     image: alpine:latest
     container_name: user-service
     ports:
-      - "5001:5001"
+      - "9000:9000"
     volumes:
       - ./bin/user-service:/app/user-service
-      - ./user-service/configs:/app/configs
+      - ./user-service/configs/.env:/.env
+      - ./user-service/migrations:/app/migrations/
     entrypoint: [ "/app/user-service" ]
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=jobs sslmode=disable timezone=Europe/Amsterdam connect_timeout=5"

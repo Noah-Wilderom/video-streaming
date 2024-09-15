@@ -94,6 +94,7 @@ func TestTokenWithStruct(t *testing.T) {
 			t.Error(err)
 			return
 		}
+
 		if ok = bytes.Equal(decryptedStruct.Hash, hash); !ok {
 			t.Errorf("expected [%s], got [%s]", string(hash), string(decryptedStruct.Hash))
 		}

@@ -37,13 +37,13 @@ func (h *AuthHandler) Login(ctx context.Context, request *auth.LoginRequest) (*a
 	}
 
 	th := token.NewJWTTokenHandler()
-	encryptedUser, err := crypt.EncryptStruct(user)
+	encryptedUser, err := crypt.EncryptStructBase64(user)
 	if err != nil {
 		h.Logger.Error(err)
 		return nil, err
 	}
 
-	tokenStr, err := th.New(map[string][]byte{
+	tokenStr, err := th.New(map[string]string{
 		"user": encryptedUser,
 	})
 	if err != nil {
@@ -97,13 +97,13 @@ func (h *AuthHandler) Register(ctx context.Context, request *auth.RegisterReques
 	}
 
 	th := token.NewJWTTokenHandler()
-	encryptedUser, err := crypt.EncryptStruct(user)
+	encryptedUser, err := crypt.EncryptStructBase64(user)
 	if err != nil {
 		h.Logger.Error(err)
 		return nil, err
 	}
 
-	tokenStr, err := th.New(map[string][]byte{
+	tokenStr, err := th.New(map[string]string{
 		"user": encryptedUser,
 	})
 	if err != nil {
@@ -133,17 +133,27 @@ func (h *AuthHandler) Check(ctx context.Context, request *auth.CheckRequest) (*a
 		return nil, errors.New("invalid token")
 	}
 
-	encryptedUser, ok := data["user"].([]byte)
+	encryptedUser, ok := data["user"].(string)
 	if !ok {
 		h.Logger.Error("invalid user data")
 		return nil, errors.New("invalid token")
 	}
 
 	var user models.User
-	err := crypt.DecryptStruct(encryptedUser, &user)
+	err := crypt.DecryptStructBase64(encryptedUser, &user)
 	if err != nil {
 		h.Logger.Error(errors.Join(errors.New("invalid user data encryption error"), err))
 		return nil, err
 	}
 
+	return &auth.LoginResponse{
+		Token: request.Token,
+		User: &auth.User{
+			Id:        user.Id,
+			Name:      user.Name,
+			Email:     user.Email,
+			CreatedAt: timestamppb.New(user.CreatedAt),
+			UpdatedAt: timestamppb.New(user.CreatedAt),
+		},
+	}, nil
 }
