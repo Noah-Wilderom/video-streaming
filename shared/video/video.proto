@@ -27,13 +27,30 @@ message Video {
 }
 
 message Metadata {
+  string resolution = 1;
+  uint64 duration = 2;
+  string format = 3;
+  string codec = 4;
+  int64 bitrate = 5;
+}
 
+message UploadMessage {
+  oneof payload {
+    UploadRequest upload_request = 1;  // Metadata and initial request
+    Chunk chunk = 2;                   // Chunk of video data
+  }
 }
 
 message Chunk {
   bytes content = 1;
   uint64 totalSize = 2;
   uint64 received = 3;
+}
+
+message UploadRequest {
+  string user_id = 1;
+  string mimetype = 2;
+  Metadata metadata = 3;
 }
 
 enum ChunkStatus {
@@ -47,5 +64,5 @@ message UploadResponse {
   string message = 2;
 }
 service VideoService {
-  rpc Upload(stream Chunk) returns (UploadResponse);
+  rpc Upload(stream UploadMessage) returns (UploadResponse);
 }

@@ -5,3 +5,6 @@ bin/
 docs/diagrams/**/*.svg
 db-data/*
 **/.env
+output/
+logs/
+**/*.pb.go
