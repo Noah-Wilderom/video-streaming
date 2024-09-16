@@ -36,7 +36,7 @@ func (t JWTToken) Validate(token string) (bool, map[string]interface{}) {
 	})
 
 	if err != nil {
-		fmt.Println("err?")
+		fmt.Printf("Token: %s | %+v\n", token, err)
 		return false, map[string]interface{}{}
 	}
 

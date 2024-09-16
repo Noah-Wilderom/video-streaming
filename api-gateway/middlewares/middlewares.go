@@ -4,6 +4,7 @@ import (
 	"github.com/Noah-Wilderom/video-streaming/api-gateway/proto/auth"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 type Handler struct {
@@ -28,6 +29,8 @@ func (h *Handler) Authenticated(next echo.HandlerFunc) echo.HandlerFunc {
 				Message: "Unauthorized",
 			})
 		}
+
+		token = strings.TrimPrefix(token, "Bearer ")
 
 		checkRes, err := h.Auth.Check(c.Request().Context(), &auth.CheckRequest{
 			Token: token,

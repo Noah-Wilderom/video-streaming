@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package video;
+
+option go_package = "/video";
+
+import "google/protobuf/timestamp.proto";
+
+enum UploadStatus {
+  Uploaded = 0;
+  Processing = 1;
+  Done = 2;
+  Failed = 3;
+}
+
+message Video {
+  string id = 1;
+  string user_id = 2;
+  UploadStatus status = 3;
+  string path = 4;
+  int64 size = 5;
+  string mimetype = 6;
+  Metadata metadata = 7;
+  google.protobuf.Timestamp processed_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message Metadata {
+
+}
+
+message Chunk {
+  bytes content = 1;
+  uint64 totalSize = 2;
+  uint64 received = 3;
+}
+
+enum ChunkStatus {
+  Unknown = 0;
+  Ok = 1;
+  Error = 2;
+}
+
+message UploadResponse {
+  ChunkStatus status = 1;
+  string message = 2;
+}
+service VideoService {
+  rpc Upload(stream Chunk) returns (UploadResponse);
+}

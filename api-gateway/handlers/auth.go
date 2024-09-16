@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/Noah-Wilderom/video-streaming/api-gateway/proto/auth"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -21,6 +23,12 @@ func (h *Handler) Login(c echo.Context) error {
 	})
 
 	if err != nil {
+		fmt.Printf("%+v\n", err)
+		if strings.Contains(err.Error(), "credentials") {
+			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+				"message": "invalid credentials",
+			})
+		}
 		return err
 	}
 
@@ -30,7 +38,7 @@ func (h *Handler) Login(c echo.Context) error {
 func (h *Handler) Register(c echo.Context) error {
 	name := c.FormValue("name")
 	email := c.FormValue("email")
-	password := c.Param("password")
+	password := c.FormValue("password")
 
 	registerCtx, cancel := context.WithTimeout(c.Request().Context(), 2*time.Second)
 	defer cancel()

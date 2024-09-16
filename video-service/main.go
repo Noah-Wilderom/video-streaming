@@ -1,15 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"github.com/Noah-Wilderom/video-streaming/video-service/handlers"
+	"github.com/Noah-Wilderom/video-streaming/video-service/migrations"
+	"github.com/Noah-Wilderom/video-streaming/video-service/proto/video"
+	"gofr.dev/pkg/gofr"
 )
+
+type Handler struct {
+}
 
 func main() {
 
-	for {
+	app := gofr.New()
 
-		fmt.Println("Hello from video-service")
-		time.Sleep(5 * time.Second)
-	}
+	app.Migrate(migrations.All())
+
+	video.RegisterVideoServiceServer(app, &handlers.VideoHandler{})
+
+	app.Run()
 }
