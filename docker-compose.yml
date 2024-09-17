@@ -84,10 +84,13 @@ services:
   streaming-service:
     image: alpine:latest
     container_name: streaming-service
+    restart: unless-stopped
     ports:
       - "5003:5003"
     volumes:
       - ./bin/streaming-service:/app/streaming-service
+      - ./streaming-service/configs/.env:/.env
+      - ./output/:/output
     entrypoint: [ "/app/streaming-service" ]
 
 volumes:

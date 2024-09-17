@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"context"
+	"gofr.dev/pkg/gofr/container"
+	"time"
+)
 
 type VideoSession struct {
 	Id           string    `json:"id"`
@@ -32,4 +36,21 @@ func ScanToVideoSession(res Scanner) (*VideoSession, error) {
 	}
 
 	return &videoSession, nil
+}
+
+func GetVideoSessionById(sql container.DB, id string) (*VideoSession, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	row := sql.QueryRowContext(ctx, "SELECT * FROM video_sessions WHERE id = ?", id)
+	if err := row.Err(); err != nil {
+		return nil, err
+	}
+
+	videoSession, err := ScanToVideoSession(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return videoSession, nil
 }

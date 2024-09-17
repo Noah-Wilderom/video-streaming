@@ -63,6 +63,12 @@ message UploadResponse {
   ChunkStatus status = 1;
   string message = 2;
 }
+
+message GetByIdRequest {
+  string id = 1;
+}
+
 service VideoService {
   rpc Upload(stream UploadMessage) returns (UploadResponse);
+  rpc GetById(GetByIdRequest) returns (Video);
 }

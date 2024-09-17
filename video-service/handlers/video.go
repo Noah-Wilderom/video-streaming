@@ -9,6 +9,7 @@ import (
 	pb "github.com/Noah-Wilderom/video-streaming/video-service/proto/video"
 	"github.com/google/uuid"
 	"gofr.dev/pkg/gofr/container"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"os"
 	"path/filepath"
@@ -18,6 +19,37 @@ import (
 type VideoHandler struct {
 	*container.Container
 	pb.UnimplementedVideoServiceServer
+}
+
+func (h *VideoHandler) GetById(ctx context.Context, req *pb.GetByIdRequest) (*pb.Video, error) {
+	row := h.SQL.QueryRowContext(ctx, "SELECT * FROM videos WHERE id = ?", req.GetId())
+	if err := row.Err(); err != nil {
+		return nil, err
+	}
+
+	video, metadata, err := models.ScanToVideo(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.Video{
+		Id:       video.Id,
+		UserId:   video.UserId,
+		Status:   pb.UploadStatus_Done,
+		Path:     video.Path,
+		Size:     video.Size,
+		Mimetype: video.MimeType,
+		Metadata: &pb.Metadata{
+			Resolution: metadata.Resolution,
+			Duration:   uint64(metadata.Duration),
+			Format:     metadata.Format,
+			Codec:      metadata.Codec,
+			Bitrate:    int64(metadata.Bitrate),
+		},
+		ProcessedAt: timestamppb.New(*video.ProcessedAt),
+		CreatedAt:   timestamppb.New(video.CreatedAt),
+		UpdatedAt:   timestamppb.New(video.UpdatedAt),
+	}, nil
 }
 
 func (h *VideoHandler) Upload(stream pb.VideoService_UploadServer) error {

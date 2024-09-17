@@ -9,6 +9,7 @@ import (
 	"github.com/Noah-Wilderom/video-streaming/api-gateway/proto/video"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -31,6 +32,24 @@ func main() {
 	handler := handlers.NewHandler(authHandler, videoHandler, streamHandler)
 	middlewareHandler := middlewares.NewHandler(authHandler)
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{
+			echo.GET,
+			echo.PUT,
+			echo.POST,
+			echo.DELETE,
+			echo.OPTIONS,
+		},
+		AllowHeaders: []string{
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			echo.HeaderOrigin,
+			echo.HeaderXRequestedWith,
+		},
+	}))
+
 	e.POST("/auth/login", handler.Login)
 	e.POST("/auth/register", handler.Register)
 	e.POST("/auth/check", handler.Check, middlewareHandler.Authenticated)
@@ -41,7 +60,8 @@ func main() {
 
 	streamGroup := e.Group("/stream")
 	streamGroup.Use(middlewareHandler.Authenticated)
-	streamGroup.GET("/new/:videoId", handler.NewStream)
+	streamGroup.POST("/new/:videoId", handler.NewStream)
+	streamGroup.GET("/segment/:videoId", handler.StreamSegment)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("APP_PORT"))))
 }
