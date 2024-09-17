@@ -33,5 +33,13 @@ generate:
 	@protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./shared/video/video.proto
 	@mkdir -p ./api-gateway/proto/video
 	@cp ./shared/video/*.pb.* ./api-gateway/proto/video/
+	@mkdir -p ./streaming-service/proto/video
+	@cp ./shared/video/*.pb.* ./streaming-service/proto/video/
 	@mkdir -p ./video-service/proto/video
 	@cp ./shared/video/*.pb.* ./video-service/proto/video/
+
+	@protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./shared/stream/stream.proto
+	@mkdir -p ./api-gateway/proto/stream
+	@cp ./shared/stream/*.pb.* ./api-gateway/proto/stream/
+	@mkdir -p ./streaming-service/proto/stream
+	@cp ./shared/stream/*.pb.* ./streaming-service/proto/stream/

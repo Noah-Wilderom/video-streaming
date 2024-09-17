@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package stream;
+
+option go_package = "/stream";
+
+import "google/protobuf/timestamp.proto";
+
+enum StreamType {
+  HLS = 0;
+}
+
+message VideoSession {
+  string id = 1;
+  string user_id = 2;
+  string video_id = 3;
+  string fragment_hash = 4;
+  string fragment_path = 5;
+  string token = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message NewStreamRequest {
+  string user_id = 1;
+  string video_id = 2;
+}
+
+message NewStreamResponse {
+  StreamType type = 1;
+  bytes m3u8_file = 2;
+}
+
+message StreamSegmentRequest {
+  string token = 1;
+  string user_id = 2;
+  string video_id = 3;
+}
+
+message StreamSegmentResponse {
+  bytes content = 1;
+  int64 size = 2;
+}
+
+service StreamingService {
+  rpc NewStream(NewStreamRequest) returns (NewStreamResponse);
+  rpc StreamSegment(StreamSegmentRequest) returns (stream StreamSegmentResponse);
+}
