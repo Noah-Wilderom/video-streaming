@@ -68,7 +68,16 @@ message GetByIdRequest {
   string id = 1;
 }
 
+message GetAllRequest {
+  string user_id = 1;
+}
+
+message GetAllResponse {
+  repeated Video videos = 1;
+}
+
 service VideoService {
   rpc Upload(stream UploadMessage) returns (UploadResponse);
   rpc GetById(GetByIdRequest) returns (Video);
+  rpc GetAll(GetAllRequest) returns (GetAllResponse);
 }

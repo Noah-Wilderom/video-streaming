@@ -26,7 +26,7 @@ func (h *Handler) NewStream(c echo.Context) error {
 		return errors.New("invalid user")
 	}
 
-	streamCtx, streamCancel := context.WithTimeout(c.Request().Context(), 5*time.Second)
+	streamCtx, streamCancel := context.WithTimeout(c.Request().Context(), 5*time.Minute)
 	defer streamCancel()
 	res, err := h.Stream.NewStream(streamCtx, &pb.NewStreamRequest{
 		UserId:  user.Id,

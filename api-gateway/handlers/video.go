@@ -30,7 +30,7 @@ func (h *Handler) Upload(c echo.Context) error {
 
 	start := time.Now()
 
-	maxFileSize := int64(5 * 1024 * 1024 * 1024) // 5GB limit
+	maxFileSize := int64(15 * 1024 * 1024 * 1024) // 15GB limit
 	limitedReader := io.LimitReader(c.Request().Body, maxFileSize)
 	userData := c.Get("user")
 	user, ok := userData.(*pbAuth.User)
@@ -61,6 +61,25 @@ func (h *Handler) Upload(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
+func (h *Handler) GetAllVideos(c echo.Context) error {
+	userData := c.Get("user")
+	user, ok := userData.(*pbAuth.User)
+	if !ok {
+		return errors.New("invalid user")
+	}
+
+	videosCtx, videosCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer videosCancel()
+
+	videos, err := h.Video.GetAll(videosCtx, &pb.GetAllRequest{UserId: user.Id})
+	if err != nil {
+		fmt.Println("Error getting videos", err.Error())
+		return err
+	}
+
+	return c.JSON(http.StatusOK, videos)
+}
+
 func bytesToReadableSize(bytes int64) string {
 	const (
 		KB = 1024
@@ -81,10 +100,10 @@ func bytesToReadableSize(bytes int64) string {
 }
 
 func (h *Handler) streamToGRPC(uploadReq *pb.UploadRequest, file io.Reader, totalSize int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	//defer cancel()
 
-	stream, err := h.Video.Upload(ctx)
+	stream, err := h.Video.Upload(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to open gRPC stream: %w", err)
 	}

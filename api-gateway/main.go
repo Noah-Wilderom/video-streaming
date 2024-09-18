@@ -56,6 +56,7 @@ func main() {
 
 	videoGroup := e.Group("/video")
 	videoGroup.Use(middlewareHandler.Authenticated)
+	videoGroup.GET("", handler.GetAllVideos)
 	videoGroup.POST("/upload", handler.Upload)
 
 	streamGroup := e.Group("/stream")

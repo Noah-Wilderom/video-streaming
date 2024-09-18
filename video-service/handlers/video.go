@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,6 +51,56 @@ func (h *VideoHandler) GetById(ctx context.Context, req *pb.GetByIdRequest) (*pb
 		CreatedAt:   timestamppb.New(video.CreatedAt),
 		UpdatedAt:   timestamppb.New(video.UpdatedAt),
 	}, nil
+}
+
+func (h *VideoHandler) GetAll(ctx context.Context, req *pb.GetAllRequest) (*pb.GetAllResponse, error) {
+	var (
+		videos []*pb.Video
+	)
+
+	rows, err := h.SQL.QueryContext(ctx, "SELECT * FROM videos WHERE user_id = ? ORDER BY created_at DESC", req.GetUserId())
+	if err != nil {
+		if errors.Is(sql.ErrNoRows, err) {
+			return &pb.GetAllResponse{Videos: videos}, nil
+		}
+
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		video, metadata, err := models.ScanToVideo(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		videoStatus := pb.UploadStatus_Uploaded
+		switch video.Status {
+		case "processed":
+			videoStatus = pb.UploadStatus_Done
+		}
+
+		videos = append(videos, &pb.Video{
+			Id:       video.Id,
+			UserId:   video.UserId,
+			Status:   videoStatus,
+			Path:     video.Path,
+			Size:     video.Size,
+			Mimetype: video.MimeType,
+			Metadata: &pb.Metadata{
+				Resolution: metadata.Resolution,
+				Duration:   uint64(metadata.Duration),
+				Format:     metadata.Format,
+				Codec:      metadata.Codec,
+				Bitrate:    int64(metadata.Bitrate),
+			},
+			ProcessedAt: timestamppb.New(*video.ProcessedAt),
+			CreatedAt:   timestamppb.New(video.CreatedAt),
+			UpdatedAt:   timestamppb.New(video.UpdatedAt),
+		})
+	}
+
+	return &pb.GetAllResponse{Videos: videos}, nil
 }
 
 func (h *VideoHandler) Upload(stream pb.VideoService_UploadServer) error {

@@ -137,8 +137,6 @@ func (h *StreamHandler) modifyM3U8ForAPI(hlsFolder string, m3u8File string, vide
 			contents = append(contents, '\n')
 			continue
 		}
-		fmt.Println(line)
-		// line = playlistx.ts
 
 		uniqueToken, err := crypt.GenerateSecretKey()
 		if err != nil {

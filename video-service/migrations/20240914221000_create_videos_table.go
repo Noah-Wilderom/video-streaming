@@ -10,7 +10,7 @@ const createTable = `CREATE TABLE videos (
   user_id VARCHAR(255) NOT NULL,
   status VARCHAR(255) NOT NULL,
   path VARCHAR(255) NOT NULL,
-  size INT NOT NULL,
+  size BIGINT NOT NULL,
   mimetype VARCHAR(255) NOT NULL,
   metadata TEXT NOT NULL,
   processed_at TIMESTAMP DEFAULT NULL,
