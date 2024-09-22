@@ -1,22 +1,17 @@
 package handlers
 
 import (
-	"bufio"
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Noah-Wilderom/video-streaming/shared/crypt"
 	"github.com/Noah-Wilderom/video-streaming/shared/token"
 	"github.com/Noah-Wilderom/video-streaming/streaming-service/models"
 	pb "github.com/Noah-Wilderom/video-streaming/streaming-service/proto/stream"
 	pbVideo "github.com/Noah-Wilderom/video-streaming/streaming-service/proto/video"
-	"github.com/google/uuid"
+	"github.com/Noah-Wilderom/video-streaming/streaming-service/scramble"
 	"gofr.dev/pkg/gofr/container"
 	"io"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -38,12 +33,36 @@ func (h *StreamHandler) NewStream(ctx context.Context, req *pb.NewStreamRequest)
 		return nil, err
 	}
 
-	m3u8Path := fmt.Sprintf("%s/hls/playlist.m3u8", video.Path)
-	contents, err := h.modifyM3U8ForAPI(fmt.Sprintf("%s/hls", video.Path), m3u8Path, videoId, userId)
+	hlsFolder := fmt.Sprintf("%s/hls", video.Path)
+	scrambler := scramble.NewScrambler(&scramble.VideoProcessor{}, h.SQL, &scramble.ScramblerOptions{
+		WorkerPoolSize: 100,
+		MaxBatchSize:   1000,
+		HLSFolder:      hlsFolder,
+		Encryption: &scramble.AES256Encryption{
+			Key: []byte(os.Getenv("ENCRYPTION_SECRET")),
+		},
+	})
+
+	// This encryption needs a public, private key for server and client for complete network encryption
+	// So this needs updates to the user or video service in order to retrieve a keypair
+	//scrambler := scramble.NewScrambler(&scramble.VideoProcessor{}, h.SQL, &scramble.ScramblerOptions{
+	//	WorkerPoolSize: 100,
+	//	MaxBatchSize:   1000,
+	//	HLSFolder:      hlsFolder,
+	//	Encryption: &scramble.PKCS1Encryption{
+	//		PublicKeyPath:  os.Getenv(""),
+	//		PrivateKeyPath: os.Getenv(""),
+	//	},
+	//})
+
+	m3u8Path := fmt.Sprintf("%s/playlist.m3u8", hlsFolder)
+	contents, err := scrambler.Scramble(m3u8Path, videoId, userId)
 	if err != nil {
 		h.Logger.Error("NewStream error", err.Error())
 		return nil, err
 	}
+
+	fmt.Println(contents)
 
 	return &pb.NewStreamResponse{
 		Type:     pb.StreamType_HLS,
@@ -117,99 +136,12 @@ func (h *StreamHandler) StreamSegment(req *pb.StreamSegmentRequest, stream pb.St
 		}
 	}
 
+	deleteCtx, deleteCancel := context.WithTimeout(ctx, 3*time.Second)
+	defer deleteCancel()
+
+	if _, err := h.SQL.ExecContext(deleteCtx, "DELETE FROM video_sesssions WHERE id = ?", videoSession.Id); err != nil {
+		fmt.Printf("cannot delete video_session [%s]: %s", videoSession.Id, err.Error())
+	}
+
 	return nil
-}
-
-func (h *StreamHandler) modifyM3U8ForAPI(hlsFolder string, m3u8File string, videoId string, userId string) ([]byte, error) {
-	var contents []byte
-
-	file, err := os.Open(m3u8File)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if ok := strings.HasPrefix(line, "playlist"); !ok {
-			contents = append(contents, scanner.Bytes()...)
-			contents = append(contents, '\n')
-			continue
-		}
-
-		uniqueToken, err := crypt.GenerateSecretKey()
-		if err != nil {
-			fmt.Println("GenerateSecretKey error", err)
-			return nil, err
-		}
-
-		encryptedToken, err := crypt.Encrypt([]byte(uniqueToken))
-		if err != nil {
-			fmt.Println("Encrypting error", err)
-			return nil, err
-		}
-		base64Token := base64.StdEncoding.EncodeToString(encryptedToken)
-
-		videoSessionId, err := uuid.NewV7()
-		if err != nil {
-			fmt.Println("NewV7 error", err)
-			return nil, err
-		}
-
-		fragmentContents, err := os.ReadFile(fmt.Sprintf("%s/%s", hlsFolder, strings.TrimSpace(line)))
-		if err != nil {
-			fmt.Println("ReadFile error", err)
-			return nil, err
-		}
-
-		hashHandler := sha256.New()
-		_, err = hashHandler.Write(fragmentContents)
-		if err != nil {
-			fmt.Println("WriteHash error", err)
-			return nil, err
-		}
-
-		videoSession := &models.VideoSession{
-			Id:           videoSessionId.String(),
-			UserId:       userId,
-			VideoId:      videoId,
-			FragmentHash: fmt.Sprintf("%x", hashHandler.Sum(nil)),
-			FragmentPath: strings.TrimSpace(line),
-			Token:        base64Token,
-		}
-
-		th := token.NewJWTTokenHandler()
-		jwtToken, err := th.New(map[string]string{
-			"token":      base64Token,
-			"session_id": videoSession.Id,
-		})
-		if err != nil {
-			fmt.Println("NewJWTToken error", err)
-			return nil, err
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		_, err = h.SQL.ExecContext(
-			ctx,
-			"INSERT INTO video_sessions (id, user_id, video_id, fragment_hash, fragment_path, token) VALUES (?, ?, ?, ?, ?, ?)",
-			videoSession.Id,
-			videoSession.UserId,
-			videoSession.VideoId,
-			videoSession.FragmentHash,
-			videoSession.FragmentPath,
-			videoSession.Token,
-		)
-		if err != nil {
-			fmt.Println("insert into db error", err)
-			return nil, err
-		}
-
-		newLine := fmt.Sprintf("http://localhost:8080/stream/segment/%s?token=%s\n", videoId, jwtToken)
-		contents = append(contents, []byte(newLine)...)
-	}
-
-	return contents, nil
 }

@@ -25,6 +25,7 @@ type VideoHandler struct {
 func (h *VideoHandler) GetById(ctx context.Context, req *pb.GetByIdRequest) (*pb.Video, error) {
 	row := h.SQL.QueryRowContext(ctx, "SELECT * FROM videos WHERE id = ?", req.GetId())
 	if err := row.Err(); err != nil {
+		fmt.Println("error getting videos:", err.Error())
 		return nil, err
 	}
 
@@ -64,6 +65,7 @@ func (h *VideoHandler) GetAll(ctx context.Context, req *pb.GetAllRequest) (*pb.G
 			return &pb.GetAllResponse{Videos: videos}, nil
 		}
 
+		fmt.Println("error on query:", err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -71,6 +73,7 @@ func (h *VideoHandler) GetAll(ctx context.Context, req *pb.GetAllRequest) (*pb.G
 	for rows.Next() {
 		video, metadata, err := models.ScanToVideo(rows)
 		if err != nil {
+			fmt.Println("error on scanning:", err.Error())
 			return nil, err
 		}
 

@@ -21,6 +21,9 @@ build-services:
 	@bash ./scripts/build-services.sh
 	@echo "Done building services"
 
+test:
+	@find . -type f -name "*_test.go" -execdir go test -v \;
+
 generate:
 	@protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./shared/auth/auth.proto
 	@mkdir -p ./api-gateway/proto/auth

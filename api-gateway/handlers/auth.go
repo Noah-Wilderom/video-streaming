@@ -32,7 +32,7 @@ func (h *Handler) Login(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, loginResponse.User)
+	return c.JSON(http.StatusOK, loginResponse)
 }
 
 func (h *Handler) Register(c echo.Context) error {
