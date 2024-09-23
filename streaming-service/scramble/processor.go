@@ -65,7 +65,8 @@ func (vp *VideoProcessor) ProcessSegment(videoId string, userId string, segmentP
 		return nil, "", fmt.Errorf("JWT error: %v", err)
 	}
 
-	newLine := fmt.Sprintf("http://localhost:8080/stream/segment/%s?token=%s\n", videoId, jwtToken)
+	apiHost := os.Getenv("API_HOST")
+	newLine := fmt.Sprintf("%s/stream/segment/%s?token=%s\n", apiHost, videoId, jwtToken)
 	fmt.Println("Segment processed:", newLine)
 	return videoSession, newLine, nil
 }
