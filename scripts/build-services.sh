@@ -10,7 +10,7 @@ mkdir -p ./$BIN_DIR
 for SERVICE in "${SERVICES[@]}"; do
   echo "Building $SERVICE..."
   cd $SERVICE
-  GOOS=linux GOARCH=amd64 go build -o ../$BIN_DIR/$SERVICE
+  CGO=0 GOOS=linux GOARCH=amd64 go build -o ../$BIN_DIR/$SERVICE
   if [ $? -ne 0 ]; then
     echo "Failed to build $SERVICE"
     exit 1
