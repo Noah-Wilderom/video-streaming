@@ -2,18 +2,34 @@ api.noahwilderom.dev {
 	handle_path /video-streaming/* {
 		reverse_proxy localhost:8080
 	}
+
+    tls {
+        protocols tls1.2 tls1.3
+    }
 }
 
 grpc.noahwilderom.dev {
 	handle_path /video-streaming/user-service/* {
-		reverse_proxy localhost:5001
+		reverse_proxy localhost:5001 {
+			transport http {
+				versions h2c
+			}
+		}
 	}
 
 	handle_path /video-streaming/video-service/* {
-		reverse_proxy localhost:5002
+		reverse_proxy localhost:5002 {
+			transport http {
+				versions h2c
+			}
+		}
 	}
 
 	handle_path /video-streaming/streaming-service/* {
-		reverse_proxy localhost:5003
+		reverse_proxy localhost:5003 {
+			transport http {
+				versions h2c
+			}
+		}
 	}
 }
