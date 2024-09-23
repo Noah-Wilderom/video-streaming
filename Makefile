@@ -1,4 +1,4 @@
-
+deploy: local_up
 
 local_up: build-services
 	@docker compose up -d --force-recreate

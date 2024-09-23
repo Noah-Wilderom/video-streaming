@@ -1,0 +1,15 @@
+api.noahwilderom.dev/video-streaming {
+    reverse_proxy localhost:8080
+}
+
+grpc.noahwilderom.dev/video-streaming/user-service {
+    reverse_proxy localhost:5001
+}
+
+grpc.noahwilderom.dev/video-streaming/video-service {
+    reverse_proxy localhost:5002
+}
+
+grpc.noahwilderom.dev/video-streaming/streaming-service {
+    reverse_proxy localhost:5003
+}

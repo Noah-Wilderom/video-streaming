@@ -1,0 +1,24 @@
+name: Deployment
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  production:
+    name: Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        uses: fifsky/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_PRODUCTION_HOST }}
+          user: ${{ secrets.SSH_PRODUCTION_USER }}
+          key: ${{ secrets.SSH_PRODUCTION_KEY }}
+          port: ${{ secrets.SSH_PRODUCTION_PORT }}
+          command: |
+            cd /var/www/video-streaming
+            git stash
+            git pull origin master
+            make deploy
